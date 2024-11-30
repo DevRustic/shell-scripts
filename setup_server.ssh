@@ -101,8 +101,21 @@ fi
 echo -e "${BLUE}Configuring timezone to ${GREEN}$user_timezone${NC}..."
 sudo timedatectl set-timezone "$user_timezone"
 sudo apt install -y chrony
-sudo systemctl enable chronyd
-sudo systemctl start chronyd
+
+# Detect the correct service name for Chrony
+if systemctl list-units --type=service | grep -q "chrony.service"; then
+    chrony_service="chrony.service"
+elif systemctl list-units --type=service | grep -q "chronyd.service"; then
+    chrony_service="chronyd.service"
+else
+    echo -e "${RED}Error: Could not find a valid Chrony service.${NC}"
+    exit 1
+fi
+
+# Enable and start Chrony
+sudo systemctl enable $chrony_service
+sudo systemctl start $chrony_service
+echo -e "${GREEN}Chrony time synchronization configured with $chrony_service.${NC}"
 
 # Install Docker and Docker-Compose (optional)
 if [[ "$install_docker" =~ ^[Yy]es$ ]]; then
