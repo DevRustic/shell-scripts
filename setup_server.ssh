@@ -169,6 +169,16 @@ EOF
 sudo chmod +x /etc/update-motd.d/01-custom
 echo -e "${GREEN}Custom MOTD created.${NC}"
 
+echo -e "${BLUE}Disabling default dynamic MOTD...${NC}"
+
+# Disable execution of all default MOTD scripts
+sudo chmod -x /etc/update-motd.d/*
+
+# Re-enable only the custom MOTD script
+sudo chmod +x /etc/update-motd.d/01-custom
+
+echo -e "${GREEN}Default dynamic MOTD disabled. Custom MOTD remains active.${NC}"
+
 # Clean Up Unnecessary Files
 echo -e "${BLUE}Cleaning up unnecessary files...${NC}"
 sudo apt autoremove -y
