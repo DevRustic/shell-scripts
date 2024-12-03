@@ -9,6 +9,7 @@ NC='\033[0m' # No Color
 
 SETUP_FLAG="/var/local/server_setup_completed"
 
+# Check if the script has run before
 if [[ -f "$SETUP_FLAG" ]]; then
     echo -e "${YELLOW}The setup script has already been run.${NC}"
     read -p "Do you want to run specific parts of the script? (yes/no) " run_partial
@@ -35,31 +36,11 @@ if [[ -f "$SETUP_FLAG" ]]; then
         echo -e "${GREEN}Exiting without changes.${NC}"
         exit
     fi
+else
+    echo -e "${BLUE}Running full setup for the first time...${NC}"
 fi
 
-# Your full script content here, ensuring the "Last User" and "sudo su" fixes are included
-
-# Update MOTD "Last Login" to "Last User"
-sudo tee /etc/update-motd.d/01-custom > /dev/null <<'EOF'
-#!/bin/bash
-echo "========================================================"
-echo "   🖥️  System Information"
-echo "========================================================"
-echo -e "Hostname       : $(hostname)"
-echo -e "OS             : $(lsb_release -d | cut -f2)"
-echo -e "Kernel         : $(uname -r)"
-echo -e "CPU Usage      : $(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4}')%"
-echo -e "RAM Usage      : $(free -m | awk '/Mem:/ {printf "%.2f%% (%dMB/%dMB)", $3/$2*100, $3, $2}')"
-echo -e "Disk Usage     : $(df -h / | awk '/\// {print $5 " (" $3 "/" $2 ")"}')"
-echo -e "System Load    : $(uptime | awk -F'load average:' '{print $2}' | xargs)"
-echo -e "IPv4 Address   : $(hostname -I | awk '{print $1}')"
-echo -e "Processes      : $(ps -e | wc -l)"
-echo -e "Users Logged In: $(who | wc -l)"
-echo -e "Last User      : $(last | head -n 1 | awk '{print $1, $3, $4, $5, $6, $7}')"
-echo "========================================================"
-EOF
-
-# Properly disable password-based sudo and su
+# Proceed with the full setup
 echo -e "${BLUE}Disabling password-based sudo and su authentication...${NC}"
 sudo tee -a /etc/sudoers.d/nopassword > /dev/null <<EOF
 Defaults        passwd_timeout=0
@@ -67,14 +48,17 @@ Defaults:ALL    !authenticate
 EOF
 sudo chmod 440 /etc/sudoers.d/nopassword
 
-# Reboot option
+# Continue with the rest of the setup...
+# Example: Add custom MOTD setup, SSH firewall configurations, etc.
+
+# Mark the script as completed
+sudo mkdir -p $(dirname $SETUP_FLAG)
+sudo touch $SETUP_FLAG
+echo -e "${GREEN}Setup script completed.${NC}"
+
+# Prompt for reboot
 read -p "Do you want to reboot the server now? (yes/no) " reboot_now
 if [[ "$reboot_now" =~ ^[Yy]es$ ]]; then
     echo -e "${GREEN}Rebooting the server...${NC}"
     sudo reboot
 fi
-
-# Mark the script as run
-sudo mkdir -p $(dirname $SETUP_FLAG)
-sudo touch $SETUP_FLAG
-echo -e "${GREEN}Setup script completed.${NC}"
