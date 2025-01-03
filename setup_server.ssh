@@ -122,18 +122,13 @@ curl -s "https://github.com/${github_username}.keys" >> ~/.ssh/authorized_keys
 # Set the appropriate permissions
 chmod 600 ~/.ssh/authorized_keys
 
-# Disable password-based sudo and su
-echo -e "${BLUE}Disabling password-based sudo and su authentication...${NC}"
-sudo tee /etc/sudoers.d/nopassword > /dev/null <<EOF
+# Configure sudo to work only with key authentication
+echo -e "${BLUE}Configuring sudo for key-based authentication only...${NC}"
+sudo tee /etc/sudoers.d/key_auth_only > /dev/null <<EOF
 Defaults        passwd_timeout=0
 Defaults:ALL    !authenticate
 EOF
-sudo chmod 440 /etc/sudoers.d/nopassword
-
-# Disable root login over SSH
-echo -e "${BLUE}Disabling root login over SSH...${NC}"
-sudo sed -i 's/^#*\(PermitRootLogin\) .*/\1 no/' /etc/ssh/sshd_config
-echo -e "${GREEN}Root login disabled.${NC}"
+sudo chmod 440 /etc/sudoers.d/key_auth_only
 
 # Restart SSH service
 echo -e "${BLUE}Restarting SSH service...${NC}"
