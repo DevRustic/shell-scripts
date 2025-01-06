@@ -133,7 +133,7 @@ sudo chown -R "$target_user":"$target_user" /home/"$target_user"/.ssh
 
 # Restart SSH service
 echo -e "${BLUE}Restarting SSH service...${NC}"
-sudo systemctl restart sshd
+sudo systemctl restart ssh
 
 # Set Timezone and Synchronize Time
 echo -e "${BLUE}Configuring timezone to ${GREEN}$user_timezone${NC}..."
