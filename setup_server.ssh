@@ -96,7 +96,7 @@ sudo apt update && sudo apt upgrade -y
 
 # Install Useful Tools and Utilities
 echo -e "${BLUE}Installing essential tools and utilities...${NC}"
-sudo apt install -y net-tools curl wget git vim htop unzip zip software-properties-common build-essential ufw fail2ban tmux ncdu
+sudo apt install -y net-tools curl wget git vim htop unzip zip software-properties-common build-essential ufw fail2ban tmux ncdu libpam-ssh-agent-auth
 
 # Enable UFW Firewall and Open Common Ports
 echo -e "${BLUE}Configuring UFW firewall...${NC}"
@@ -124,11 +124,9 @@ chmod 600 ~/.ssh/authorized_keys
 
 # Configure sudo to work only with key authentication
 echo -e "${BLUE}Configuring sudo for key-based authentication only...${NC}"
-sudo tee /etc/sudoers.d/key_auth_only > /dev/null <<EOF
-Defaults        passwd_timeout=0
-Defaults:ALL    !authenticate
-EOF
-sudo chmod 440 /etc/sudoers.d/key_auth_only
+sudo sed -i '/^#\?auth\s\+required\s\+pam_unix.so/s/^/#/' /etc/pam.d/sudo
+echo "auth    sufficient    pam_ssh_agent_auth.so" | sudo tee -a /etc/pam.d/sudo
+echo 'Defaults        env_keep += "SSH_AUTH_SOCK"' | sudo tee -a /etc/sudoers
 
 # Restart SSH service
 echo -e "${BLUE}Restarting SSH service...${NC}"
@@ -191,9 +189,6 @@ echo -e "Last User      : $(last -n 1 | awk '{print $1, $3, $4, $5, $6, $7}')"
 echo "========================================================"
 EOF
 sudo chmod +x /etc/update-motd.d/01-custom
-sudo chmod -x /etc/update-motd.d/*
-sudo chmod +x /etc/update-motd.d/01-custom
-echo -e "${GREEN}Custom MOTD created.${NC}"
 
 # Clean Up Unnecessary Files
 echo -e "${BLUE}Cleaning up unnecessary files...${NC}"
