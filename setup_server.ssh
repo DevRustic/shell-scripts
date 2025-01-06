@@ -96,7 +96,7 @@ sudo apt update && sudo apt upgrade -y
 
 # Install Useful Tools and Utilities
 echo -e "${BLUE}Installing essential tools and utilities...${NC}"
-sudo apt install -y net-tools curl wget git vim htop unzip zip software-properties-common build-essential ufw fail2ban tmux
+sudo apt install -y net-tools curl wget git vim htop unzip zip software-properties-common build-essential ufw fail2ban tmux ncdu
 
 # Enable UFW Firewall and Open Common Ports
 echo -e "${BLUE}Configuring UFW firewall...${NC}"
