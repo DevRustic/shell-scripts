@@ -111,6 +111,9 @@ sudo ufw --force enable
 echo -e "${BLUE}Configuring SSH for public key authentication only...${NC}"
 sudo sed -i 's/^#*\(PasswordAuthentication\) .*/\1 no/' /etc/ssh/sshd_config
 sudo sed -i 's/^#*\(PubkeyAuthentication\) .*/\1 yes/' /etc/ssh/sshd_config
+sudo sed -i 's/^#*\(AuthorizedKeysFile\) .*/\1 .ssh/authorized_keys/' /etc/ssh/sshd_config
+sudo sed -i 's/^#*\(AuthenticationMethods\) .*/\1 publickey/' /etc/ssh/sshd_config
+
 
 # Ensure the .ssh directory exists
 mkdir -p ~/.ssh
