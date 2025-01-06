@@ -54,6 +54,15 @@ fi
 # Start full setup
 echo -e "${BLUE}--- Welcome to the Ubuntu Server Setup Script ---${NC}"
 
+# Prompt the user for the target username
+read -p "Enter the username to upload the public key to: " target_user
+if id "$target_user" &>/dev/null; then
+    echo -e "${GREEN}User $target_user exists.${NC}"
+else
+    echo -e "${RED}Error: User $target_user does not exist. Please create the user first.${NC}"
+    exit 1
+fi
+
 # Prompt the user for the GitHub username
 read -p "Enter the GitHub username for SSH public key setup: " github_username
 
@@ -111,27 +120,16 @@ sudo ufw --force enable
 echo -e "${BLUE}Configuring SSH for public key authentication only...${NC}"
 sudo sed -i 's/^#*\(PasswordAuthentication\) .*/\1 no/' /etc/ssh/sshd_config
 sudo sed -i 's/^#*\(PubkeyAuthentication\) .*/\1 yes/' /etc/ssh/sshd_config
-sudo sed -i 's/^#*\(AuthorizedKeysFile\) .*/\1 .ssh/authorized_keys/' /etc/ssh/sshd_config
 sudo sed -i 's/^#*\(AuthenticationMethods\) .*/\1 publickey/' /etc/ssh/sshd_config
-
-
-# Ensure the .ssh directory exists
-mkdir -p ~/.ssh
 
 # Fetch the public key from the GitHub account and append it to authorized_keys
 echo -e "${BLUE}Fetching public key from GitHub for user: ${GREEN}$github_username${NC}..."
-curl -s "https://github.com/${github_username}.keys" >> ~/.ssh/authorized_keys
+sudo -u "$target_user" bash -c "mkdir -p /home/$target_user/.ssh && curl -s https://github.com/${github_username}.keys >> /home/$target_user/.ssh/authorized_keys"
 
 # Set the appropriate permissions
-chmod 600 ~/.ssh/authorized_keys
-
-# Configure sudo to work only with key authentication
-echo -e "${BLUE}Configuring sudo for key-based authentication only...${NC}"
-sudo tee /etc/sudoers.d/key_auth_only > /dev/null <<EOF
-Defaults        passwd_timeout=0
-Defaults:ALL    !authenticate
-EOF
-sudo chmod 440 /etc/sudoers.d/key_auth_only
+sudo chmod 700 /home/"$target_user"/.ssh
+sudo chmod 600 /home/"$target_user"/.ssh/authorized_keys
+sudo chown -R "$target_user":"$target_user" /home/"$target_user"/.ssh
 
 # Restart SSH service
 echo -e "${BLUE}Restarting SSH service...${NC}"
